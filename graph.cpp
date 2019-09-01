@@ -79,7 +79,7 @@ void readfile(const char* filename){
 	double double_temp;
 	while (read>>str_temp){
 		//read master and slave
-		if(str_temp=="Master"){
+		if(str_temp=="Master:"){
 			while(read>>str_temp){
 				if(str_temp=="end")
 					break;
@@ -88,7 +88,7 @@ void readfile(const char* filename){
 				vecmaster.push_back(master_temp);
 			}
 		}
-		if(str_temp=="Slave"){
+		if(str_temp=="Slave:"){
 			while(read>>str_temp){
 				if(str_temp=="end")
 					break;
@@ -148,18 +148,21 @@ void set_color_map(){
 
 //each edge can only has one color;
 void set_constraint_group1(){
-	for(auto &j:veccon){
-		if(j->type()==1){
-                	sum_constr++;
-                	constr_sense_map[sum_constr]=0;
-                	constr_rightside_map[sum_constr]=1;
-			constr_variable_map[sum_constr].insert(color_map[0][j->origin()->id()][j->end()->id()]);
-                	color_map[0][j->origin()->id()][j->end()->id()]->constr_involved.insert(sum_constr);
-                	color_map[0][j->origin()->id()][j->end()->id()]->constr_coeff[sum_constr]=1;
-			for(int i=0;i<=vecmaster.size();i++){
-                        	constr_variable_map[sum_constr].insert(color_map[i][j->origin()->id()][j->end()->id()]);
-                       		color_map[i][j->origin()->id()][j->end()->id()]->constr_involved.insert(sum_constr);
-                        	color_map[i][j->origin()->id()][j->end()->id()]->constr_coeff[sum_constr]=1;
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
+			if(edge[i][j]==1){
+                		sum_constr++;
+                		constr_sense_map[sum_constr]=0;
+                		constr_rightside_map[sum_constr]=1;
+				constr_variable_map[sum_constr].insert(color_map[0][i][j]);
+                		color_map[0][i][j]->constr_involved.insert(sum_constr);
+                		color_map[0][i][j]->constr_coeff[sum_constr]=1;
+				for(int k=1;k<=vecmaster.size();k++){
+                        		constr_variable_map[sum_constr].insert(color_map[k][i][j]);
+                       			color_map[k][i][j]->constr_involved.insert(sum_constr);
+                        		color_map[k][i][j]->constr_coeff[sum_constr]=1;
+				}
+			}
                 }
         }
 }
@@ -177,7 +180,6 @@ void set_constraint_group2(){
 			}
 		}
 	}
-
 	for(int k=0;k<=vecnode.size();k++){
 		for(auto &j:vecslave){
 			sum_constr++;
@@ -191,7 +193,7 @@ void set_constraint_group2(){
 		}
 	}
 }
-map<int,map<int,map<int,map<int,shared_ptr<variable>>>>> share;//share_ihjl;j=i2,i=i1,l=j2,h=j1
+map<int,map<int,map<int,map<int,shared_ptr<variable> > > > > share;//share_ihjl;j=i2,i=i1,l=j2,h=j1
 void set_sharedvalue(){
         for(int i=1;i<=vecmaster.size();i++){
 		for(int j=1;j<=vecmaster.size();j++){
@@ -210,30 +212,21 @@ void set_sharedvalue(){
 }
 ///constraint 78910
 void set_constraint_group3(){
-	for(&p:veccon){
-		for(&q:veccon){
-			if(p->type()==1&&q->type()==1){
-				i=p->origin()->id();
-				j=q->origin()->id();
-				h=p->end()->id();
-				l=p->end()->id();
-				shared_ptr<connectivity> newcon;
-				if(i,l)->type==1 and (j,h)->type==1;
-				then given following constraints
-				
         for(int i=1;i<=vecmaster.size();i++){
                 for(int j=1;j<=vecmaster.size();j++){
 			for(int h=1;h<=vecslave.size();h++){
 				for(int l=1;l<=vecslave.size();l++){
-                        		sum_constr++;
-                       			constr_sense_map[sum_constr]=1;
-                       			constr_rightside_map[sum_constr]=0;	
-                       			constr_variable_map[sum_constr].insert(color_map[0][i][l]);
-                        		color_map[0][j][h]->constr_involved.insert(sum_constr);
-                        		color_map[0][j][h]->constr_coeff[sum_constr]=1;
-                        		constr_variable_map[sum_constr].insert(share[i][h][j][l]);
-                        		share[i][h][j][l]->constr_involved.insert(sum_constr);
-                        		share[i][h][j][l]->constr_coeff[sum_constr]=-1;
+					if(edge[i][h]==1&&edge[i][l]==1&&edge[j][h]&&edge[j][l]==1){
+						sum_constr++;
+						constr_sense_map[sum_constr]=1;
+						constr_rightside_map[sum_constr]=0;	
+						constr_variable_map[sum_constr].insert(color_map[0][i][l]);
+						color_map[0][j][h]->constr_involved.insert(sum_constr);
+						color_map[0][j][h]->constr_coeff[sum_constr]=1;
+						constr_variable_map[sum_constr].insert(share[i][h][j][l]);
+						share[i][h][j][l]->constr_involved.insert(sum_constr);
+						share[i][h][j][l]->constr_coeff[sum_constr]=-1;
+					}
                 		}
 			}
 		}
@@ -242,15 +235,17 @@ void set_constraint_group3(){
                 for(int j=1;j<=vecnode.size();j++){
 			for(int h=1;h<=vecnode.size();h++){
 				for(int l=1;l<=vecnode.size();l++){
-                        		sum_constr++;
-                        		constr_sense_map[sum_constr]=1;
-                        		constr_rightside_map[sum_constr]=0;
-                        		constr_variable_map[sum_constr].insert(color_map[0][j][h]);
-                        		color_map[0][j][h]->constr_involved.insert(sum_constr);
-                        		color_map[0][j][h]->constr_coeff[sum_constr]=1;
-                        		constr_variable_map[sum_constr].insert(share[i][h][j][l]);
-                        		share[i][h][j][l]->constr_involved.insert(sum_constr);
-                        		share[i][h][j][l]->constr_coeff[sum_constr]=-1;
+					if(edge[i][h]==1&&edge[i][l]==1&&edge[j][h]&&edge[j][l]==1){
+						sum_constr++;
+						constr_sense_map[sum_constr]=1;
+						constr_rightside_map[sum_constr]=0;
+						constr_variable_map[sum_constr].insert(color_map[0][j][h]);
+						color_map[0][j][h]->constr_involved.insert(sum_constr);
+						color_map[0][j][h]->constr_coeff[sum_constr]=1;
+						constr_variable_map[sum_constr].insert(share[i][h][j][l]);
+						share[i][h][j][l]->constr_involved.insert(sum_constr);
+						share[i][h][j][l]->constr_coeff[sum_constr]=-1;
+					}
 		                }       
 			}
 		}
@@ -259,19 +254,21 @@ void set_constraint_group3(){
 		for(int j=1;j<=vecnode.size();j++){
 			for(int h=1;h<=vecnode.size();h++){
 				for(int l=1;l<=vecnode.size();l++){
-					sum_constr++;
-					constr_sense_map[sum_constr]=-1;
-					constr_rightside_map[sum_constr]=M;     
-       		        		constr_variable_map[sum_constr].insert(share[i][h][j][l]);
-       	        			share[i][h][j][l]->constr_involved.insert(sum_constr);
-       		        		share[i][h][j][l]->constr_coeff[sum_constr]=M;
-					for(int k=1;k<=vecnode.size();k++){
-						constr_variable_map[sum_constr].insert(color_map[k][i][h]);
-						color_map[k][i][h]->constr_involved.insert(sum_constr);
-						color_map[k][i][h]->constr_coeff[sum_constr]=k;
-                                		constr_variable_map[sum_constr].insert(color_map[k][j][l]);
-                                		color_map[k][j][l]->constr_involved.insert(sum_constr);
-                                		color_map[k][j][l]->constr_coeff[sum_constr]=-k;
+					if(edge[i][h]==1&&edge[j][l]==1){
+						sum_constr++;
+						constr_sense_map[sum_constr]=-1;
+						constr_rightside_map[sum_constr]=M;     
+						constr_variable_map[sum_constr].insert(share[i][h][j][l]);
+						share[i][h][j][l]->constr_involved.insert(sum_constr);
+						share[i][h][j][l]->constr_coeff[sum_constr]=M;
+						for(int k=1;k<=vecnode.size();k++){
+							constr_variable_map[sum_constr].insert(color_map[k][i][h]);
+							color_map[k][i][h]->constr_involved.insert(sum_constr);
+							color_map[k][i][h]->constr_coeff[sum_constr]=k;
+							constr_variable_map[sum_constr].insert(color_map[k][j][l]);
+							color_map[k][j][l]->constr_involved.insert(sum_constr);
+							color_map[k][j][l]->constr_coeff[sum_constr]=-k;
+						}
 					}
 				}
 			}
@@ -281,19 +278,21 @@ void set_constraint_group3(){
 		for(int j=1;j<=vecnode.size();j++){
 			for(int h=1;h<=vecnode.size();h++){
 				for(int l=1;l<=vecnode.size();l++){
-					sum_constr++;
-					constr_sense_map[sum_constr]=-1;
-					constr_rightside_map[sum_constr]=M;     
-       		        		constr_variable_map[sum_constr].insert(share[i][h][j][l]);
-       	        			share[i][h][j][l]->constr_involved.insert(sum_constr);
-       		        		share[i][h][j][l]->constr_coeff[sum_constr]=M;
-					for(int k=1;k<=vecnode.size();k++){
-						constr_variable_map[sum_constr].insert(color_map[k][j][l]);
-						color_map[k][j][l]->constr_involved.insert(sum_constr);
-						color_map[k][j][l]->constr_coeff[sum_constr]=k;
-                                		constr_variable_map[sum_constr].insert(color_map[k][i][h]);
-                                		color_map[k][i][h]->constr_involved.insert(sum_constr);
-                                		color_map[k][i][h]->constr_coeff[sum_constr]=-k;
+					if(edge[i][h]==1&&edge[j][l]==1){
+						sum_constr++;
+						constr_sense_map[sum_constr]=-1;
+						constr_rightside_map[sum_constr]=M;     
+						constr_variable_map[sum_constr].insert(share[i][h][j][l]);
+						share[i][h][j][l]->constr_involved.insert(sum_constr);
+						share[i][h][j][l]->constr_coeff[sum_constr]=M;
+						for(int k=1;k<=vecnode.size();k++){
+							constr_variable_map[sum_constr].insert(color_map[k][j][l]);
+							color_map[k][j][l]->constr_involved.insert(sum_constr);
+							color_map[k][j][l]->constr_coeff[sum_constr]=k;
+							constr_variable_map[sum_constr].insert(color_map[k][i][h]);
+							color_map[k][i][h]->constr_involved.insert(sum_constr);
+							color_map[k][i][h]->constr_coeff[sum_constr]=-k;
+						}
 					}
 				}
 			}
@@ -303,8 +302,8 @@ void set_constraint_group3(){
 //define binary variable for ADF
 map<int,map<int,shared_ptr<variable>>> adf;
 void set_adf(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
 			adf[i][j]=make_shared<variable>();
 			adf[i][j]->id=vvar.size();
 			adf[i][j]->type=0;
@@ -317,24 +316,28 @@ void set_adf(){
 
 //constraint 11; i,j means ij h,l means int a,b
 void set_constraint_group4(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
-			sum_constr++;
-			constr_sense_map[sum_constr]=1;
-			constr_rightside_map[sum_constr]=0;
-			constr_variable_map[sum_constr].insert(adf[i][j]);
-			adf[i][j]->constr_involved.insert(sum_constr);
-			adf[i][j]->constr_coeff[sum_constr]=1;
-			for(int k=1;k<=vecnode.size();k++){
-                                constr_variable_map[sum_constr].insert(color_map[k][i][j]);
-                                color_map[k][i][j]->constr_involved.insert(sum_constr);
-                                color_map[k][i][j]->constr_coeff[sum_constr]=-1;
-			}
-			for(int h=1;h<=vecnode.size();h++){
-				for(int l=1;l<=vecnode.size();l++){		
-                        		constr_variable_map[sum_constr].insert(share[i][j][h][l]);
-                        		share[i][j][h][l]->constr_involved.insert(sum_constr);
-                        		share[i][j][h][l]->constr_coeff[sum_constr]=1;
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
+			if(edge[i][j]==1){
+				sum_constr++;
+				constr_sense_map[sum_constr]=1;
+				constr_rightside_map[sum_constr]=0;
+				constr_variable_map[sum_constr].insert(adf[i][j]);
+				adf[i][j]->constr_involved.insert(sum_constr);
+				adf[i][j]->constr_coeff[sum_constr]=1;
+				for(int k=1;k<=vecmaster.size();k++){
+					constr_variable_map[sum_constr].insert(color_map[k][i][j]);
+					color_map[k][i][j]->constr_involved.insert(sum_constr);
+					color_map[k][i][j]->constr_coeff[sum_constr]=-1;
+				}
+				for(int h=1;h<=vecmaster.size();h++){
+					for(int l=1;l<=vecslave.size();l++){	
+						if(edge[h][l]==1){
+							constr_variable_map[sum_constr].insert(share[i][j][h][l]);
+							share[i][j][h][l]->constr_involved.insert(sum_constr);
+							share[i][j][h][l]->constr_coeff[sum_constr]=1;
+						}
+					}
 				}
 			}
 		}
@@ -342,52 +345,55 @@ void set_constraint_group4(){
 }
 //constraint 12 13;i:i1 h:j1 j:i2 l:j2
 void set_constraint_group5(){
-	for(int i=1;i<=4;i++){
-		for(int h=1;h<=4;h++){
-			for(int j=1;j<=4;j++){
-				for(int l=1;l<=4;l++){
-					sum_constr++;
-					constr_sense_map[sum_constr]=-1;
-					constr_rightside_map[sum_constr]=2;
-					constr_variable_map[sum_constr].insert(adf[i][h]);
-					adf[i][h]->constr_involved.insert(sum_constr);
-					adf[i][h]->constr_coeff[sum_constr]=1;
-					constr_variable_map[sum_constr].insert(adf[j][l]);
-					adf[j][l]->constr_involved.insert(sum_constr);
-					adf[j][l]->constr_coeff[sum_constr]=1;
-					constr_variable_map[sum_constr].insert(share[i][h][j][l]);
-					share[i][h][j][l]->constr_involved.insert(sum_constr);
-					share[i][h][j][l]->constr_coeff[sum_constr]=1;
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int h=1;h<=vecslave.size();h++){
+			for(int j=1;j<=vecmaster.size();j++){
+				for(int l=1;l<=vecslave.size();l++){
+					if(edge[i][h]==1&&edge[j][l]==1){
+						sum_constr++;
+						constr_sense_map[sum_constr]=-1;
+						constr_rightside_map[sum_constr]=2;
+						constr_variable_map[sum_constr].insert(adf[i][h]);
+						adf[i][h]->constr_involved.insert(sum_constr);
+						adf[i][h]->constr_coeff[sum_constr]=1;
+						constr_variable_map[sum_constr].insert(adf[j][l]);
+						adf[j][l]->constr_involved.insert(sum_constr);
+						adf[j][l]->constr_coeff[sum_constr]=1;
+						constr_variable_map[sum_constr].insert(share[i][h][j][l]);
+						share[i][h][j][l]->constr_involved.insert(sum_constr);
+						share[i][h][j][l]->constr_coeff[sum_constr]=1;
+					}
 				}
 			}
 		}
 	}
-	for(int i=1;i<=4;i++){
-		for(int h=1;h<=4;h++){
-			for(int j=1;j<=4;j++){
-				for(int l=1;l<=4;l++){			
-					sum_constr++;
-					constr_sense_map[sum_constr]=1;
-					constr_rightside_map[sum_constr]=0;
-					constr_variable_map[sum_constr].insert(adf[i][h]);
-					adf[i][h]->constr_involved.insert(sum_constr);
-					adf[i][h]->constr_coeff[sum_constr]=1;
-					constr_variable_map[sum_constr].insert(adf[j][l]);
-					adf[j][l]->constr_involved.insert(sum_constr);
-					adf[j][l]->constr_coeff[sum_constr]=1;
-					constr_variable_map[sum_constr].insert(share[i][h][j][l]);
-					share[i][h][j][l]->constr_involved.insert(sum_constr);
-					share[i][h][j][l]->constr_coeff[sum_constr]=-1;
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int h=1;h<=vecslave.size();h++){
+			for(int j=1;j<=vecmaster.size();j++){
+				for(int l=1;l<=vecslave.size();l++){
+					if(edge[i][h]==1&&edge[j][l]==1){		
+						sum_constr++;
+						constr_sense_map[sum_constr]=1;
+						constr_rightside_map[sum_constr]=0;
+						constr_variable_map[sum_constr].insert(adf[i][h]);
+						adf[i][h]->constr_involved.insert(sum_constr);
+						adf[i][h]->constr_coeff[sum_constr]=1;
+						constr_variable_map[sum_constr].insert(adf[j][l]);
+						adf[j][l]->constr_involved.insert(sum_constr);
+						adf[j][l]->constr_coeff[sum_constr]=1;
+						constr_variable_map[sum_constr].insert(share[i][h][j][l]);
+						share[i][h][j][l]->constr_involved.insert(sum_constr);
+						share[i][h][j][l]->constr_coeff[sum_constr]=-1;
 				}
 			}
 		}
 	}
 }
 //define insertion loss 
-map<int,map<int,shared_ptr<variable>>> Il;//insertionloss
+map<int,map<int,shared_ptr<variable> > > Il;//insertionloss
 void set_insertionloss(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
         		Il[i][j]=make_shared<variable>();
         		Il[i][j]->id=vvar.size();
         		Il[i][j]->type=2;
@@ -399,10 +405,10 @@ void set_insertionloss(){
 }
 
 //define adf number in the path
-map<int,map<int,shared_ptr<variable>>> numadf;//number of adf
+map<int,map<int,shared_ptr<variable> > > numadf;//number of adf
 void set_numofadf(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
         		numadf[i][j]=make_shared<variable>();
         		numadf[i][j]->id=vvar.size();
         		numadf[i][j]->type=2;
@@ -415,81 +421,88 @@ void set_numofadf(){
 
 //set constraint 14
 void set_constraint_group6(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
-			sum_constr++;
-			constr_sense_map[sum_constr]=0;
-			constr_rightside_map[sum_constr]=droploss-adfloss;
-			constr_variable_map[sum_constr].insert(Il[i][j]);
-			Il[i][j]->constr_involved.insert(sum_constr);
-			Il[i][j]->constr_coeff[sum_constr]=1;
-			constr_variable_map[sum_constr].insert(numadf[i][j]);
-			numadf[i][j]->constr_involved.insert(sum_constr);
-			numadf[i][j]->constr_coeff[sum_constr]=-adfloss;
-			constr_variable_map[sum_constr].insert(color_map[0][i][j]);
-			color_map[0][i][j]->constr_involved.insert(sum_constr);
-			color_map[0][i][j]->constr_coeff[sum_constr]=droploss-adfloss;
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
+			if(edge[i][j]==1){
+				sum_constr++;
+				constr_sense_map[sum_constr]=0;
+				constr_rightside_map[sum_constr]=droploss-adfloss;
+				constr_variable_map[sum_constr].insert(Il[i][j]);
+				Il[i][j]->constr_involved.insert(sum_constr);
+				Il[i][j]->constr_coeff[sum_constr]=1;
+				constr_variable_map[sum_constr].insert(numadf[i][j]);
+				numadf[i][j]->constr_involved.insert(sum_constr);
+				numadf[i][j]->constr_coeff[sum_constr]=-adfloss;
+				constr_variable_map[sum_constr].insert(color_map[0][i][j]);
+				color_map[0][i][j]->constr_involved.insert(sum_constr);
+				color_map[0][i][j]->constr_coeff[sum_constr]=droploss-adfloss;
+			}
 		}
 	}
 }
 //default path constraint 15
 void set_constraint_group7(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){	
-        		sum_constr++;
-        		constr_sense_map[sum_constr]=1;
-        		constr_rightside_map[sum_constr]=-M;
-       			constr_variable_map[sum_constr].insert(numadf[i][j]);
-        		numadf[i][j]->constr_involved.insert(sum_constr);
-			numadf[i][j]->constr_coeff[sum_constr]=1;
-			constr_variable_map[sum_constr].insert(color_map[0][i][j]);
-			color_map[0][i][j]->constr_involved.insert(sum_constr);
-			color_map[0][i][j]->constr_coeff[sum_constr]=-M;
-			for(int k=1;k<=vecnode.size();k++){
-       				constr_variable_map[sum_constr].insert(adf[i][k]);
-        			adf[i][k]->constr_involved.insert(sum_constr);
-				adf[i][k]->constr_coeff[sum_constr]=-1;
-			}
-			for(int k=1;k<=vecnode.size();k++){
-				constr_variable_map[sum_constr].insert(adf[k][j]);
-				adf[k][j]->constr_involved.insert(sum_constr);
-				adf[k][j]->constr_coeff[sum_constr]=-1;
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){	
+			if(edge[i][j]==1){
+				sum_constr++;
+				constr_sense_map[sum_constr]=1;
+				constr_rightside_map[sum_constr]=-M;
+				constr_variable_map[sum_constr].insert(numadf[i][j]);
+				numadf[i][j]->constr_involved.insert(sum_constr);
+				numadf[i][j]->constr_coeff[sum_constr]=1;
+				constr_variable_map[sum_constr].insert(color_map[0][i][j]);
+				color_map[0][i][j]->constr_involved.insert(sum_constr);
+				color_map[0][i][j]->constr_coeff[sum_constr]=-M;
+				for(int k=1;k<=vecslave.size();k++){
+					constr_variable_map[sum_constr].insert(adf[i][k]);
+					adf[i][k]->constr_involved.insert(sum_constr);
+					adf[i][k]->constr_coeff[sum_constr]=-1;
+				}
+				for(int k=1;k<=vecmaster.size();k++){
+					constr_variable_map[sum_constr].insert(adf[k][j]);
+					adf[k][j]->constr_involved.insert(sum_constr);
+					adf[k][j]->constr_coeff[sum_constr]=-1;
+				}
 			}
 		}			
         }
 }
 //constraint 16 
 void set_constraint_group8(){
-        for(int i=1;i<=vecnode.size();i++){
-                for(int j=1;j<=vecnode.size();j++){    
-                        sum_constr++;
-                        constr_sense_map[sum_constr]=1;
-                        constr_rightside_map[sum_constr]=-M;
-                        constr_variable_map[sum_constr].insert(numadf[i][j]);
-                        numadf[i][j]->constr_involved.insert(sum_constr);
-                        numadf[i][j]->constr_coeff[sum_constr]=1;
-                        constr_variable_map[sum_constr].insert(adf[i][j]);
-                        adf[i][j]->constr_involved.insert(sum_constr);
-                        adf[i][j]->constr_coeff[sum_constr]=-M;
-                        for(int k=1;k<=j;k++){
-                                constr_variable_map[sum_constr].insert(adf[i][k]);
-                                adf[i][k]->constr_involved.insert(sum_constr);
-                                adf[i][k]->constr_coeff[sum_constr]=-1;
+        for(int i=1;i<=vecmaster.size();i++){
+                for(int j=1;j<=vecslave.size();j++){ 
+			if(edge[i][j]==1){
+				sum_constr++;
+				constr_sense_map[sum_constr]=1;
+				constr_rightside_map[sum_constr]=-M;
+				constr_variable_map[sum_constr].insert(numadf[i][j]);
+				numadf[i][j]->constr_involved.insert(sum_constr);
+				numadf[i][j]->constr_coeff[sum_constr]=1;
+				constr_variable_map[sum_constr].insert(adf[i][j]);
+				adf[i][j]->constr_involved.insert(sum_constr);
+				adf[i][j]->constr_coeff[sum_constr]=-M;
+				for(int k=1;k<=j;k++){
+					constr_variable_map[sum_constr].insert(adf[i][k]);
+					adf[i][k]->constr_involved.insert(sum_constr);
+					adf[i][k]->constr_coeff[sum_constr]=-1;
+				}
+				for(int k=1;k<i;k++){
+					constr_variable_map[sum_constr].insert(adf[k][j]);
+					adf[k][j]->constr_involved.insert(sum_constr);
+					adf[k][j]->constr_coeff[sum_constr]=-1;
+				}   
 			}
-			for(int k=1;k<i;k++){
-                                constr_variable_map[sum_constr].insert(adf[k][j]);
-                                adf[k][j]->constr_involved.insert(sum_constr);
-                                adf[k][j]->constr_coeff[sum_constr]=-1;
-                        }   
                 }    
         }   
 }
 //question i+1 j+1 loop problem
 void set_constraint_group9(){
-        for(int i=1;i<=vecnode.size();i++){
-                for(int j=1;j<=vecnode.size();j++){
-			for(int h=1;h<=vecnode.size();h++){
-				for(int l=1;l<=vecnode.size();l++){
+        for(int i=1;i<=vecmaster.size();i++){
+                for(int j=1;j<=vecslave.size();j++){
+			for(int h=1;h<=vecmaster.size();h++){
+				for(int l=1;l<=vecslave.size();l++){
+					if(edge[i][h]==1&&edge[j][l]==1){
                         		sum_constr++;
                         		constr_sense_map[sum_constr]=1;
                         		constr_rightside_map[sum_constr]=-M;
