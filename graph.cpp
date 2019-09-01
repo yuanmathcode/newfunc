@@ -16,7 +16,7 @@
 using namespace std;
 class master;
 class slave;
-//class connectivity;
+
 
 class master{
 private:
@@ -71,6 +71,7 @@ double adfloss;
 double droploss;
 map<int,map<int,shared_ptr<variable> > > loop;
 vector<set<int> > endslave;
+
 void readfile(const char* filename){
 	ifstream read(filename);
 	string str_temp;
@@ -128,26 +129,6 @@ void readfile(const char* filename){
                 }
 	}
 }
-/*	for(auto &i:vecnode){
-		set<int> setofend;
-		for(auto &j:vecedge){
-			if(j->origin()->id()==i->id())
-				setofend.insert(j->end()->id());
-		}
-		endnode.push_back(setofend);
-        }
-	for(int i=0;i<endnode.size();i++){
-		for(auto j:endnode[i]){
-			cout<<j;}}
-        for(auto &i:endnode){
-                cout<<"{";
-                for(auto &j:i){
-                        cout<<j;
-                }
-                cout<<"}"<<endl;
-        }
-	
-        cout<<endnode.size()<<" "<<endl;*/
 
 //define color_map[i][j][h] as binary variable:i means color,j means node;
 void set_color_map(){
