@@ -496,13 +496,13 @@ void set_constraint_group8(){
                 }    
         }   
 }
-//question i+1 j+1 loop problem
+//question i+1 j+1 loop problem,i'=j;j'=l;j=h
 void set_constraint_group9(){
         for(int i=1;i<=vecmaster.size();i++){
-                for(int j=1;j<=vecslave.size();j++){
-			for(int h=1;h<=vecmaster.size();h++){
+                for(int j=1;j<=vecmaster.size();j++){
+			for(int h=1;h<=vecslave.size();h++){
 				for(int l=1;l<=vecslave.size();l++){
-					if(edge[i][h]==1&&edge[j][l]==1){
+					if(edge[i][h]==1&&edge[j][h]==1){
                         		sum_constr++;
                         		constr_sense_map[sum_constr]=1;
                         		constr_rightside_map[sum_constr]=-M;
@@ -515,25 +515,33 @@ void set_constraint_group9(){
                         		constr_variable_map[sum_constr].insert(share[i][h][j][l]);
                         		share[i][h][j][l]->constr_involved.insert(sum_constr);
                         		share[i][h][j][l]->constr_coeff[sum_constr]=-M;
-                        		for(int k=1;k<=vecnode.size();k++){
-                                		constr_variable_map[sum_constr].insert(adf[i][k]);
-                                		adf[i][k]->constr_involved.insert(sum_constr);
-                                		adf[i][k]->constr_coeff[sum_constr]=-1;
+                        		for(int k=1;k<=vecslave.size();k++){
+						if(edge[i][k]==1){
+							constr_variable_map[sum_constr].insert(adf[i][k]);
+							adf[i][k]->constr_involved.insert(sum_constr);
+							adf[i][k]->constr_coeff[sum_constr]=-1;
+						}
                         		}
-                        		for(int k=h;k<=vecnode.size();k++){
-                               			constr_variable_map[sum_constr].insert(adf[k][l]);
-                                		adf[k][l]->constr_involved.insert(sum_constr);
-                                		adf[k][l]->constr_coeff[sum_constr]=-1;
+                        		for(int k=h;k<=vecmaster.size();k++){
+						if(edge[k][l]==1){
+							constr_variable_map[sum_constr].insert(adf[k][l]);
+							adf[k][l]->constr_involved.insert(sum_constr);
+							adf[k][l]->constr_coeff[sum_constr]=-1;
+						}
                         		}
-                        		for(int k=l+1;k<=vecnode.size();k++){
-                                		constr_variable_map[sum_constr].insert(adf[k][j]);
-                                		adf[k][j]->constr_involved.insert(sum_constr);
-                                		adf[k][j]->constr_coeff[sum_constr]=-1;
+                        		for(int k=l+1;k<=vecslave.size();k++){
+						if(edge[k][j]==1){
+							constr_variable_map[sum_constr].insert(adf[k][j]);
+							adf[k][j]->constr_involved.insert(sum_constr);
+							adf[k][j]->constr_coeff[sum_constr]=-1;
+						}
                         		}
-                        		for(int k=1;k<=vecnode.size();k++){
-                                		constr_variable_map[sum_constr].insert(adf[k][h]);
-                                		adf[k][h]->constr_involved.insert(sum_constr);
-                                		adf[k][h]->constr_coeff[sum_constr]=-1;
+                        		for(int k=1;k<=vecmaster.size();k++){
+						if(edge[k][h]==1){
+							constr_variable_map[sum_constr].insert(adf[k][h]);
+							adf[k][h]->constr_involved.insert(sum_constr);
+							adf[k][h]->constr_coeff[sum_constr]=-1;
+						}
                         		}
 				}
 			}
@@ -541,8 +549,8 @@ void set_constraint_group9(){
         }
 }
 void set_loop(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
 			loop[i][j]=make_shared<variable>();
 			loop[i][j]->id=vvar.size();
 			loop[i][j]->type=0;
@@ -553,10 +561,10 @@ void set_loop(){
 	}
 }
 
-map<int,map<int,shared_ptr<variable>>> banzou;
+map<int,map<int,shared_ptr<variable> > > banzou;
 void set_banzou(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
 			banzou[i][j]=make_shared<variable>();
 			banzou[i][j]->id=vvar.size();
 			banzou[i][j]->type=0;
@@ -568,8 +576,8 @@ void set_banzou(){
 }
 //const 181920
 void set_constraint_group13(){
-      	 for(int i=1;i<=vecnode.size();i++){
-                for(int j=1;j<=vecnode.size();j++){    
+      	 for(int i=1;i<=vecmaster.size();i++){
+                for(int j=1;j<=vecslave.size();j++){    
                         sum_constr++;
                         constr_sense_map[sum_constr]=-1;
                         constr_rightside_map[sum_constr]=0;
@@ -581,20 +589,20 @@ void set_constraint_group13(){
                         color_map[0][i][j]->constr_coeff[sum_constr]=-1;
 		}
 	}
-        for(int i=1;i<=vecnode.size();i++){
-                for(int j=1;j<=vecnode.size();j++){    
+        for(int i=1;i<=vecmaster.size();i++){
+                for(int j=1;j<=vecslave.size();j++){    
                         sum_constr++;
                         constr_sense_map[sum_constr]=1;
                         constr_rightside_map[sum_constr]=-M;
                         constr_variable_map[sum_constr].insert(loop[i][j]);
                         loop[i][j]->constr_involved.insert(sum_constr);
                         loop[i][j]->constr_coeff[sum_constr]=-M;
-			for(int k=j+1;k<=vecnode.size();k++){
+			for(int k=j+1;k<=vecmaster.size();k++){
                         	constr_variable_map[sum_constr].insert(adf[i][k]);
                         	adf[i][k]->constr_involved.insert(sum_constr);
                         	adf[i][k]->constr_coeff[sum_constr]=-1;
 			}
-			for(int k=i+1;k<=vecnode.size();k++){
+			for(int k=i+1;k<=vecmaster.size();k++){
                         	constr_variable_map[sum_constr].insert(adf[k][j]);
                         	adf[k][j]->constr_involved.insert(sum_constr);
                         	adf[k][j]->constr_coeff[sum_constr]=-1;
@@ -625,8 +633,8 @@ void set_constraint_group13(){
 	constr_variable_map[sum_constr].insert(loop[1][1]);
         loop[1][1]->constr_involved.insert(sum_constr);
         loop[1][1]->constr_coeff[sum_constr]=-1;
-        for(int i=2;i<=vecnode.size();i++){
-                for(int j=2;j<=vecnode.size();j++){    
+        for(int i=2;i<=vecmaster.size();i++){
+                for(int j=2;j<=vecslave.size();j++){    
                         sum_constr++;
                         constr_sense_map[sum_constr]=-1;
                         constr_rightside_map[sum_constr]=0;
@@ -692,8 +700,8 @@ void set_constraint_group10(){
         constr_variable_map[sum_constr].insert(totaladf);
         totaladf->constr_involved.insert(sum_constr);
         totaladf->constr_coeff[sum_constr]=1;
-	for(auto &i:vecnode){
-		for(auto &j:vecnode){
+	for(auto &i:vecmaster){
+		for(auto &j:vecslave){
         		constr_variable_map[sum_constr].insert(adf[i->id()][j->id()]);
                         adf[i->id()][j->id()]->constr_involved.insert(sum_constr);
                         adf[i->id()][j->id()]->constr_coeff[sum_constr]=-1;
@@ -702,8 +710,8 @@ void set_constraint_group10(){
 }
 //constraint 22
 void set_constraint_group11(){
-	for(int i=1;i<=vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
+	for(int i=1;i<=vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
 			sum_constr++;
         		constr_sense_map[sum_constr]=1;
         		constr_rightside_map[sum_constr]=0;
@@ -720,8 +728,8 @@ void set_constraint_group11(){
 }
 
 void set_constraint_group12(){
-	for(int i=1;i<vecnode.size();i++){
-		for(int j=1;j<=vecnode.size();j++){
+	for(int i=1;i<vecmaster.size();i++){
+		for(int j=1;j<=vecslave.size();j++){
 			sum_constr++;
 			constr_sense_map[sum_constr]=1;
 			constr_rightside_map[sum_constr]=0;
@@ -739,8 +747,8 @@ void set_constraint_group12(){
         constr_variable_map[sum_constr].insert(totalremove);
         totalremove->constr_involved.insert(sum_constr);
         totalremove->constr_coeff[sum_constr]=1;
-	for(auto &i:vecnode){
-		for(auto &j:vecnode){
+	for(auto &i:vecmaster){
+		for(auto &j:vecslave){
         		constr_variable_map[sum_constr].insert(banzou[i->id()][j->id()]);
                         banzou[i->id()][j->id()]->constr_involved.insert(sum_constr);
                         banzou[i->id()][j->id()]->constr_coeff[sum_constr]=-1;
@@ -863,7 +871,7 @@ int main(int argc, char * argv[]){
 	set_constraint_group2();
 	set_constraint_group3();
 	set_constraint_group4();
-//	set_constraint_group5();
+	set_constraint_group5();
 	set_constraint_group6();
 	set_constraint_group7();
 	set_constraint_group8();
